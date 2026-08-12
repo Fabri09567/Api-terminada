@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador - Redes</title>
+    <!-- Cargamos Bootstrap para tener un diseño profesional sin escribir CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">Sistema de Redes y Reclamos - Panel Auditoría</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col">
+                <h3>Listado de Reclamos</h3>
+                <p class="text-muted">Aquí aparecerán los expedientes cargados en la base de datos.</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" onclick="cargarReclamos()">Actualizar Datos</button>
+            </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Base</th>
+                            <th>Nº RP</th>
+                            <th>Mes</th>
+                            <th>Procedencia</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-reclamos">
+                        <!-- JavaScript va a inyectar las filas aquí adentro -->
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lógica de conexión con la API -->
+    <script>
+        // Esta función se conecta a tu API, trae los datos y dibuja la tabla
+        async function cargarReclamos() {
+            const tabla = document.getElementById('tabla-reclamos');
+            
+            try {
+                // Hacemos la consulta a la ruta GET que programaste en FastAPI
+                const respuesta = await fetch('/api/reclamos');
+                const reclamos = await respuesta.json();
+                
+                // Limpiamos la tabla
+                tabla.innerHTML = '';
+
+                if (reclamos.length === 0) {
+                    tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay reclamos cargados aún.</td></tr>';
+                    return;
+                }
+
+                // Recorremos los datos y creamos una fila (tr) por cada reclamo
+                reclamos.forEach(reclamo => {
+                    const fila = `
+                        <tr>
+                            <td>#${reclamo.id}</td>
+                            <td><strong>${reclamo.numero_rp}</strong></td>
+                            <td>${reclamo.mes}</td>
+                            <td>${reclamo.procedencia}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info">Ver Mediciones</button>
+                            </td>
+                        </tr>
+                    `;
+                    tabla.innerHTML += fila;
+                });
+
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al conectar con la API.</td></tr>';
+            }
+        }
+
+        // Ejecutamos la función automáticamente al abrir la página
+        window.onload = cargarReclamos;
+    </script>
+</body>
+</html>
